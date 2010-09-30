@@ -59,7 +59,7 @@ class Config(dict):
 class Lighthouse(object):
 	# TODO: Make these configurable.
 	cache_path = 'cache'
-	cache_expiration_seconds = 60*5
+	cache_expiration_seconds = 60*60
 	
 	def __init__(self, config):
 		self.config = config
@@ -98,7 +98,7 @@ class Lighthouse(object):
 		f.write(data)
 		f.close()
 	
-	def get_data(self, endpoint):
+	def get_xml(self, endpoint):
 		url = os.path.join(self.config.base_url(), endpoint)
 		
 		data = None
@@ -112,38 +112,50 @@ class Lighthouse(object):
 
 			try:
 				response = urllib2.urlopen(req)
-				data = response.read()
+				xml = response.read()
 			except HTTPError as exception:
 				self.config.log("There was an error fetching the data.")
 				self.config.log(exception)
 				self.config.log()
 				exit
 
-			self.cache_put(url, data)
+			self.cache_put(url, xml)
 
 			self.config.log("Fetched!")
 			
 		else:
 			self.config.log("Loading from cache...")
-			data = self.cache_get(url)
+			xml = self.cache_get(url)
 			self.config.log("Loaded!")
-			
+
+		return xml
 		
-		return data
+	def xml_to_data(self, xml):
+		return BeautifulSoup.BeautifulStoneSoup(xml)
 	
 	def update_projects(self):
 		self.config.log("Fetching the projects list...")
 
-		data = self.get_data(Project.endpoint)
+		xml = self.get_xml(Project.endpoint)
+		data = self.xml_to_data(xml)
 		
+		self.projects = []
 		
-		
+		for project_data in data.projects:
+			if not isinstance(project_data, BeautifulSoup.Tag):
+				continue
 
-class Project(object):
+			project = Project(project_data)
+			self.projects.append(project)
+
+class Project(dict):
 	endpoint = "projects.xml"
 	
-	def __init__(self):
-		print "hai"
+	def __init__(self, project_data):
+		for node in project_data.contents:
+			if not isinstance(node, BeautifulSoup.Tag):
+				continue
+			self[node.name] = node.string
 	
 
 if __name__ == "__main__":
