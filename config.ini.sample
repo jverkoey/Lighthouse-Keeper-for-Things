@@ -1,0 +1,6 @@
+# A sample configuration file.
+
+[lighthouse]
+token: <required>
+account: <required>
+
