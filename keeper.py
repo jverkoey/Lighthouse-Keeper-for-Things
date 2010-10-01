@@ -197,4 +197,6 @@ if __name__ == "__main__":
 	l = Lighthouse(config)
 	l.update_projects()
 	
+	things.log_completed_tickets()
+	
 	

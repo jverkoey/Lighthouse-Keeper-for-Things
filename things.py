@@ -156,3 +156,19 @@ end tell""" % (name, project_name, tags)
 		return None
 	
 	return True
+
+def log_completed_tickets():
+	cmd = """tell application "Things"
+	log completed now
+end tell"""
+
+	p = subprocess.Popen(['osascript', '-e', cmd], shell=False,
+	 	stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(stdout, stderr) = p.communicate()
+
+	if len(stderr) > 0:
+		print "Unhandled error:"
+		print "'" + stderr + "'"
+		return None
+	
+	return True
