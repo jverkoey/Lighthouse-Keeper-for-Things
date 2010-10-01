@@ -6,10 +6,11 @@
 #  Copyright 2010 Jeff Verkoeyen. Apache 2.0
 #
 
+from keeper import Lighthouse
+from urllib2 import HTTPError
 import BeautifulSoup
 import hashlib
 import os
-from keeper import Lighthouse
 import time
 import urllib2
 

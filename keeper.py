@@ -11,8 +11,6 @@
 #
 
 from optparse import OptionParser
-from urllib2 import HTTPError
-from xml.dom import minidom
 import BeautifulSoup
 import ConfigParser
 import hashlib
@@ -74,7 +72,7 @@ class Lighthouse(object):
 	def update_projects(self):
 		self.config.log("Fetching the projects list...")
 
-		xml = network.get_xml(Project.endpoint, config)
+		xml = network.get_xml(Project.endpoint, self.config)
 		data = network.xml_to_data(xml)
 		
 		self.projects = []
@@ -83,27 +81,33 @@ class Lighthouse(object):
 			if not isinstance(project_data, BeautifulSoup.Tag):
 				continue
 
-			project = Project(project_data)
-			project.update_tasks()
+			project = Project(project_data, self.config)
+			project.update_tickets()
 			self.projects.append(project)
 
 
 class Project(dict):
 	endpoint = "projects.xml"
 	
-	def __init__(self, project_data):
+	def __init__(self, project_data, config):
+		self.config = config
+		self.tickets = []
+		
 		for node in project_data.contents:
 			if not isinstance(node, BeautifulSoup.Tag):
 				continue
 			self[node.name] = node.string
 
-		self.id = things.get_project_id(self.name())
+		self.lighthouse_id = self['id']
+		self.things_id = things.get_project_id(self.name())
 
-		if self.id is None:
+		if self.things_id is None:
 			print "Creating a new Things project for " + self['name'] + "..."
-			self.id = things.create_project(self.name(), self.description())
+			self.things_id = things.create_project(self.name(), self.description())
 		else:
 			things.set_project_description(self.name(), self.description())
+		
+		print
 
 	def name(self):
 		return self['name'] + ' (LH)'
@@ -117,10 +121,42 @@ class Project(dict):
 		description += "Imported from Lighthouse"
 		return description
 
-	def update_tasks(self):
-		print 'hai'
+	def tasks_list_url(self):
+		return 'projects/%s/tickets.xml' % (self.lighthouse_id)
+
+	def update_tickets(self):
+		print "Updating the tickets..."
+		xml = network.get_xml(self.tasks_list_url(), self.config)
+		data = network.xml_to_data(xml)
+
+		self.tickets = []
+		
+		for ticket_data in data.tickets:
+			if not isinstance(ticket_data, BeautifulSoup.Tag):
+				continue
+
+			ticket = Ticket(ticket_data, self.name(), self.config)
+			self.tickets.append(ticket)
 
 
+class Ticket(dict):
+	
+	def __init__(self, ticket_data, project_name, config):
+		self.project_name = project_name
+		self.config = config
+		
+		for node in ticket_data.contents:
+			if not isinstance(node, BeautifulSoup.Tag):
+				continue
+			self[node.name] = node.string
+
+		self.things_id = things.get_ticket_id(self.project_name, self.name())
+		if self.things_id is None:
+			print "Creating a new Things to do for " + self['title'] + "..."
+			self.things_id = things.create_ticket(self.project_name, self.name(), self['original-body'], self['url'])
+
+	def name(self):
+		return self['title'] + ' (Lighthouse number: ' + self['number'] + ')'
 
 if __name__ == "__main__":
 	parser = OptionParser()
