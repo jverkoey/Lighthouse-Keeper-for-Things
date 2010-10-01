@@ -6,6 +6,12 @@
 #
 #  http://lighthouseapp.com/api
 #
+#  Usage:
+#    > python keeper.py -v -a <account_name> -t <token>
+#
+#  Copy the config.ini.sample file to config.ini and set your Lighthouse
+#  information if you don't want to have to pass the token through the command line.
+#
 #  Created by Jeff Verkoeyen on 2010-09-30.
 #  Copyright 2010 Jeff Verkoeyen. Licensed under the Apache License, Version 2.0.
 #  http://www.apache.org/licenses/LICENSE-2.0
@@ -103,12 +109,12 @@ class Project(dict):
 		self.things_id = things.get_project_id(self.name())
 
 		if self.things_id is None:
-			print "Creating a new Things project for " + self['name'] + "..."
+			self.config.log("Creating a new Things project for " + self['name'] + "...")
 			self.things_id = things.create_project(self.name(), self.description())
 		else:
 			things.set_project_description(self.name(), self.description())
 		
-		print
+		self.config.log("")
 
 	def name(self):
 		return self['name'] + ' (LH)'
@@ -126,13 +132,13 @@ class Project(dict):
 		return 'projects/%s/tickets.xml' % (self.lighthouse_id)
 
 	def update_tickets(self):
-		print "Updating the tickets..."
+		self.config.log("Updating the tickets...")
 
 		self.tickets = []
 
 		page = 1
 		while True:
-			print "Page " + str(page)
+			self.config.log("Page " + str(page))
 			xml = network.get_xml(self.tasks_list_url() + '?page=' + str(page), self.config)
 			data = network.xml_to_data(xml)
 
@@ -148,8 +154,7 @@ class Project(dict):
 				ticket = Ticket(ticket_data, self.name(), self.config)
 				self.tickets.append(ticket)
 			
-			print
-
+			self.config.log("")
 
 class Ticket(dict):
 	
@@ -164,7 +169,7 @@ class Ticket(dict):
 
 		self.things_id = things.get_ticket_id(self.project_name, self.name())
 		if self.things_id is None:
-			print "Creating a new Things to do for " + self['title'] + "..."
+			self.config.log("Creating a new Things to do for " + self['title'] + "...")
 			self.things_id = things.create_ticket(self.project_name, self.name(), self['original-body'], self['url'])
 		
 		if self['state'] == 'resolved':
@@ -179,7 +184,7 @@ if __name__ == "__main__":
 	parser = OptionParser()
 	
 	parser.add_option("-a", "--account", dest="account", help="Your Lighthouse account")
-	parser.add_option("-c", "--config", dest="config", help="The config file to use",
+	parser.add_option("-c", "--config", dest="config", help="The config file to use (default: config.ini)",
 						default="config.ini")
 	parser.add_option("-t", "--token", dest="token", help="Your Lighthouse token")					
 	parser.add_option("-v", "--verbose", dest="is_verbose", action="store_true",

@@ -1,6 +1,8 @@
 #
 #  network.py
-#  Network methods.
+#  Network methods. Hand-rolled because I'm not familiar enough with Python's
+#  network code to make something simpler. It's likely that there is some intelligent
+#  URL/caching mechanism out there. For now, this gets the job done. Ship it!
 #
 #  Created by Jeff Verkoeyen on 2010-10-01.
 #  Copyright 2010 Jeff Verkoeyen. Licensed under the Apache License, Version 2.0.
