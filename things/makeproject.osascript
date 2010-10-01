@@ -1,0 +1,3 @@
+tell application "Things"
+	set newProject to make new project with properties {name:"New project", notes:"Tiny note"}
+end tell

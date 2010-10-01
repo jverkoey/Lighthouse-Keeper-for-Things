@@ -17,7 +17,9 @@ import BeautifulSoup
 import ConfigParser
 import hashlib
 import os
+import subprocess
 import sys
+import things
 import time
 import urllib2
 
@@ -156,7 +158,15 @@ class Project(dict):
 			if not isinstance(node, BeautifulSoup.Tag):
 				continue
 			self[node.name] = node.string
-	
+
+		self.id = things.get_project_id(self['name'])
+
+		if self.id is None:
+			print "Creating a new Things project for " + self['name'] + "..."
+			self.id = things.create_project(self['name'], "Created from Lighthouse")
+		
+		print self.id
+		
 
 if __name__ == "__main__":
 	parser = OptionParser()
