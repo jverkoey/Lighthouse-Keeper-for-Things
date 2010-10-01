@@ -149,6 +149,8 @@ class Lighthouse(object):
 
 			project = Project(project_data)
 			self.projects.append(project)
+		
+		
 
 class Project(dict):
 	endpoint = "projects.xml"
@@ -159,14 +161,26 @@ class Project(dict):
 				continue
 			self[node.name] = node.string
 
-		self.id = things.get_project_id(self['name'])
+		self.id = things.get_project_id(self.name())
 
 		if self.id is None:
 			print "Creating a new Things project for " + self['name'] + "..."
-			self.id = things.create_project(self['name'], "Created from Lighthouse")
-		
-		print self.id
-		
+			self.id = things.create_project(self.name(), self.description())
+		else:
+			things.set_project_description(self.name(), self.description())
+
+
+	def name(self):
+		return self['name'] + ' (LH)'
+
+	def description(self):
+		description = self['description']
+		if description is None:
+			description = ""
+		else:
+			description += "-"
+		description += "Imported from Lighthouse"
+		return description
 
 if __name__ == "__main__":
 	parser = OptionParser()
