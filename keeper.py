@@ -165,6 +165,11 @@ class Ticket(dict):
 		if self.things_id is None:
 			print "Creating a new Things to do for " + self['title'] + "..."
 			self.things_id = things.create_ticket(self.project_name, self.name(), self['original-body'], self['url'])
+		
+		if self['state'] == 'resolved':
+			things.complete_ticket(self.project_name, self.name())
+		
+		things.set_ticket_tags(self.project_name, self.name(), self['tag'])
 
 	def name(self):
 		return self['title'] + ' (Lighthouse number: ' + self['number'] + ')'

@@ -101,3 +101,58 @@ end tell""" % (name, description, url, project_name)
 		return None
 
 	return stdout.rsplit(' ')[-1]
+
+def complete_ticket(project_name, name):
+	cmd = """tell application "Things"
+	set toDoToComplete to to do named "%s" of project "%s"
+	set status of toDoToComplete to completed
+end tell""" % (name, project_name)
+
+	p = subprocess.Popen(['osascript', '-e', cmd], shell=False,
+	 	stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(stdout, stderr) = p.communicate()
+
+	if len(stderr) > 0:
+		print "Unhandled error:"
+		print "'" + stderr + "'"
+		return None
+	
+	return True
+
+def set_ticket_tags(project_name, name, tags):
+	if tags is None:
+		tags = ""
+
+	taglist = tags.split(' ')
+	cleantaglist = []
+	buff = ""
+	in_quote = False
+	for tag in taglist:
+		buff += tag.replace('&quot;', '')
+		
+		if tag.find('&quot;') == 0:
+			in_quote = True
+		if in_quote and tag.find('&quot;') > 0:
+			cleantaglist.append(buff)
+			buff = ""
+			in_quote = False
+		elif not in_quote:
+			cleantaglist.append(buff)
+			buff = ""
+	tags = ','.join(cleantaglist)
+
+	cmd = """tell application "Things"
+	set toDoToTag to to do named "%s" of project "%s"
+	set tag names of toDoToTag to "%s"
+end tell""" % (name, project_name, tags)
+
+	p = subprocess.Popen(['osascript', '-e', cmd], shell=False,
+	 	stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(stdout, stderr) = p.communicate()
+
+	if len(stderr) > 0:
+		print "Unhandled error:"
+		print "'" + stderr + "'"
+		return None
+	
+	return True
