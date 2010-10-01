@@ -16,12 +16,11 @@ from xml.dom import minidom
 import BeautifulSoup
 import ConfigParser
 import hashlib
+import network
 import os
 import subprocess
 import sys
 import things
-import time
-import urllib2
 
 class Config(dict):
 	"""The configuration information for this script."""
@@ -62,84 +61,21 @@ class Lighthouse(object):
 	# TODO: Make these configurable.
 	cache_path = 'cache'
 	cache_expiration_seconds = 60*60
-	
+
 	def __init__(self, config):
 		self.config = config
 		self.projects = []
-		
+
 		try:
 			os.mkdir(Lighthouse.cache_path)
 		except Exception:
 			pass
-	
-	def url_to_cache_path(self, url):
-		hash = hashlib.sha224(url).hexdigest()
-		return os.path.join(Lighthouse.cache_path, hash)
-	
-	def cache_check(self, url):
-		cache_path = self.url_to_cache_path(url)
 
-		if os.path.isfile(cache_path):
-			return (time.time() - os.stat(cache_path).st_mtime) < Lighthouse.cache_expiration_seconds
-		else:
-			return False
-	
-	def cache_get(self, url):
-		cache_path = self.url_to_cache_path(url)
-		
-		f = open(cache_path, 'r')
-		data = f.read()
-		f.close()
-
-		return data
-	
-	def cache_put(self, url, data):
-		cache_path = self.url_to_cache_path(url)
-		
-		f = open(cache_path, 'w')
-		f.write(data)
-		f.close()
-	
-	def get_xml(self, endpoint):
-		url = os.path.join(self.config.base_url(), endpoint)
-		
-		data = None
-		if not self.cache_check(url):
-			self.config.log("Sending request to " + url)
-
-			headers = { 
-				'X-LighthouseToken' : self.config['token'],
-			}
-			req = urllib2.Request(url, None, headers)	
-
-			try:
-				response = urllib2.urlopen(req)
-				xml = response.read()
-			except HTTPError as exception:
-				self.config.log("There was an error fetching the data.")
-				self.config.log(exception)
-				self.config.log()
-				exit
-
-			self.cache_put(url, xml)
-
-			self.config.log("Fetched!")
-			
-		else:
-			self.config.log("Loading from cache...")
-			xml = self.cache_get(url)
-			self.config.log("Loaded!")
-
-		return xml
-		
-	def xml_to_data(self, xml):
-		return BeautifulSoup.BeautifulStoneSoup(xml)
-	
 	def update_projects(self):
 		self.config.log("Fetching the projects list...")
 
-		xml = self.get_xml(Project.endpoint)
-		data = self.xml_to_data(xml)
+		xml = network.get_xml(Project.endpoint, config)
+		data = network.xml_to_data(xml)
 		
 		self.projects = []
 		
@@ -148,9 +84,9 @@ class Lighthouse(object):
 				continue
 
 			project = Project(project_data)
+			project.update_tasks()
 			self.projects.append(project)
-		
-		
+
 
 class Project(dict):
 	endpoint = "projects.xml"
@@ -169,7 +105,6 @@ class Project(dict):
 		else:
 			things.set_project_description(self.name(), self.description())
 
-
 	def name(self):
 		return self['name'] + ' (LH)'
 
@@ -181,6 +116,11 @@ class Project(dict):
 			description += "-"
 		description += "Imported from Lighthouse"
 		return description
+
+	def update_tasks(self):
+		print 'hai'
+
+
 
 if __name__ == "__main__":
 	parser = OptionParser()
