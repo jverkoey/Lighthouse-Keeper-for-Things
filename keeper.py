@@ -126,17 +126,28 @@ class Project(dict):
 
 	def update_tickets(self):
 		print "Updating the tickets..."
-		xml = network.get_xml(self.tasks_list_url(), self.config)
-		data = network.xml_to_data(xml)
 
 		self.tickets = []
-		
-		for ticket_data in data.tickets:
-			if not isinstance(ticket_data, BeautifulSoup.Tag):
-				continue
 
-			ticket = Ticket(ticket_data, self.name(), self.config)
-			self.tickets.append(ticket)
+		page = 1
+		while True:
+			print "Page " + str(page)
+			xml = network.get_xml(self.tasks_list_url() + '?page=' + str(page), self.config)
+			data = network.xml_to_data(xml)
+
+			if data.tickets is None or len(data.tickets) == 0:
+				break
+
+			page = page + 1
+
+			for ticket_data in data.tickets:
+				if not isinstance(ticket_data, BeautifulSoup.Tag):
+					continue
+
+				ticket = Ticket(ticket_data, self.name(), self.config)
+				self.tickets.append(ticket)
+			
+			print
 
 
 class Ticket(dict):
