@@ -7,7 +7,8 @@
 #  http://lighthouseapp.com/api
 #
 #  Created by Jeff Verkoeyen on 2010-09-30.
-#  Copyright 2010 Jeff Verkoeyen. Apache 2.0
+#  Copyright 2010 Jeff Verkoeyen. Licensed under the Apache License, Version 2.0.
+#  http://www.apache.org/licenses/LICENSE-2.0
 #
 
 from optparse import OptionParser
