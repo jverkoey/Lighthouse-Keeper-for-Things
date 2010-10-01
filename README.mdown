@@ -1,0 +1,15 @@
+
+The Lighthouse Keeper
+=====================
+
+This script pulls down projects and tickets from Lighthouse and synchronizes them with
+Things.
+
+Usage
+-----
+
+    python keeper.py -v -a <account_name> -t <token>
+
+Runs the keeper with the given account name and token. Get your token at your
+Lighthouse user page (on the right-hand side). The account name is the subdomain at
+Lighthouse.com.
