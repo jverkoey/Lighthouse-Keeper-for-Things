@@ -12,6 +12,12 @@
 #  Copy the config.ini.sample file to config.ini and set your Lighthouse
 #  information if you don't want to have to pass the token through the command line.
 #
+#  Versions:
+#    1.0: Includes basic pull-down from Lighthouse of Projects and all of their
+#         tickets. The code is ugly as hell.
+#
+#  Thanks go to Leonard Richardson for BeautifulSoup!
+#
 #  Created by Jeff Verkoeyen on 2010-09-30.
 #  Copyright 2010 Jeff Verkoeyen. Licensed under the Apache License, Version 2.0.
 #  http://www.apache.org/licenses/LICENSE-2.0
